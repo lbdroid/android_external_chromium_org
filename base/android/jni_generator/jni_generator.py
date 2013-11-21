@@ -555,18 +555,21 @@ class JNIFromJavaSource(object):
                                                                contents)
     return JNIFromJavaSource(contents, fully_qualified_class)
 
+def MultipleReplace(string, rep_dict):
+  pattern = re.compile("|".join([re.escape(k) for k in rep_dict.keys()]), re.M)
+  return pattern.sub(lambda x: rep_dict[x.group(0)], string)
 
 class InlHeaderFileGenerator(object):
   """Generates an inline header file for JNI integration."""
 
   def __init__(self, namespace, fully_qualified_class, natives,
                called_by_natives):
-    self.namespace = namespace
-    self.fully_qualified_class = fully_qualified_class
+    self.namespace = MultipleReplace(namespace, {'':''})
+    self.fully_qualified_class = MultipleReplace(fully_qualified_class, {'':''})
     self.class_name = self.fully_qualified_class.split('/')[-1]
     self.natives = natives
     self.called_by_natives = called_by_natives
-    self.header_guard = fully_qualified_class.replace('/', '_') + '_JNI'
+    self.header_guard = MultipleReplace(fully_qualified_class, {'/':'_', '':''}) + '_JNI'
 
   def GetContent(self):
     """Returns the content of the JNI binding file."""
